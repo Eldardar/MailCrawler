@@ -12,7 +12,9 @@ from googlesearch import search
 ##########
 NUMBER_OF_RESULTS		= 2
 CRAWLING_DEPTH			= 2
+REQUEST_TIMEOUT			= 3
 EMAIL_REGEX				= b'\w+[.|\w]\w+@\w+[.]\w+[.|\w+]\w+'
+MAIL_SUFFIX_BLACKLIST	= (b'.png', b'.jpeg', b'jpg')
 
 #############
 # Functions #
@@ -34,8 +36,12 @@ def crawl_for_addresses(url, crawl_depth=0):
 	mail_addresses = []
 	print("[*] Requesting - {url}".format(url=url, ))
 	try:
-		response = requests.get(url, timeout=5)
+		response = requests.get(url, timeout=REQUEST_TIMEOUT)
 		mail_addresses = re.findall(EMAIL_REGEX, response.content)
+		# Remove addresses with the blacklist suffix
+		mail_addresses = [address for address in mail_addresses if not address.endswith(MAIL_SUFFIX_BLACKLIST)]
+		# Remove duplicates
+		mail_addresses = list(set(mail_addresses))
 	except Exception as e:
 		print("[X] Error - {exception}".format(exception=e, ))
 
